@@ -27,13 +27,15 @@ test = pd.read_csv('../Dataset/house-prices-advanced-regression-techniques/test.
 
 # ## Exploratory data analysis
 
-# In[6]:
+# In[3]:
 
 
 train.head()
 
 
-# In[7]:
+# A potential issue here is that "NA" in "Alley", and in other categories is interpreted as "NaN", hence missing data, although is isn't
+
+# In[4]:
 
 
 test.head()
@@ -50,13 +52,13 @@ test.drop('Id', axis=1, inplace=True)
 
 # Let's look at the correlations of the data
 
-# In[34]:
+# In[6]:
 
 
 correlations_train = train.corr()
 
 
-# In[42]:
+# In[7]:
 
 
 sns.set(font_scale=1.4)
@@ -64,7 +66,7 @@ sns.set(font_scale=1.4)
 
 # Which variables have stronger correlation with the Sale price that we want to predict?
 
-# In[49]:
+# In[8]:
 
 
 plt.figure(figsize=(20, 10))
@@ -103,6 +105,94 @@ plt.show()
 # This confirms that variables like "GarageArea" and "GarageCars" are strongly correlated. Maybe it makes sense to consider using only one of them and reduce the dimensionality of the problem
 
 # ## Data preparation
+
+# Split dataset in X and y
+
+# In[20]:
+
+
+y = train['SalePrice'].reset_index(drop=True)
+X = train.drop(['SalePrice'], axis=1)
+
+
+# Let's deal with missing data first
+
+# In[23]:
+
+
+def fraction_missing_data(df):
+    
+    """Compute the fraction of missing data for each variable."""
+    
+    # Compute the number of missing data per variable
+    total = df.isnull().sum().sort_values(ascending=False)
+    
+    # Mask to filter cases with no missing data
+    mask_missing_data = total != 0
+    
+    # Compute fraction of missing data
+    percent = (total / len(df) * 100)[mask_missing_data]
+    
+    # Apply mask to filter cases with no missing data
+    total = total[mask_missing_data]
+    percent = percent[mask_missing_data]
+    
+    return pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
+
+
+# In[24]:
+
+
+missing_data = fraction_missing_data(X)
+
+
+# In[38]:
+
+
+fig, ax = plt.subplots(figsize=(20, 5))
+sns.barplot(x=missing_data.index, y='Percent', data=missing_data, palette='Oranges_r')
+plt.xticks(rotation=90)
+plt.show()
+
+
+# In[42]:
+
+
+X[missing_data.index]
+
+
+# As anticipated, for some categories we seem to have missing data. In reality pandas is just misinterpreting the "NA"s.
+# Let's take care of them first
+
+# In[44]:
+
+
+# Categories where 'NaN' mean None.
+
+none_cols = ['Alley', 'PoolQC', 'MiscFeature', 'Fence', 'FireplaceQu', 'GarageType',
+            'GarageFinish', 'GarageQual', 'GarageCond', 'BsmtQual', 'BsmtCond',
+    'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2', 'MasVnrType'
+]
+
+for col in none_cols:
+    X[col].replace(np.nan, 'None', inplace=True)
+
+
+# In[46]:
+
+
+missing_data = fraction_missing_data(X)
+fig, ax = plt.subplots(figsize=(20, 5))
+sns.barplot(x=missing_data.index, y='Percent', data=missing_data, palette='Oranges_r')
+plt.xticks(rotation=90)
+plt.show()
+
+
+# In[47]:
+
+
+X[missing_data.index]
+
 
 # In[3]:
 
