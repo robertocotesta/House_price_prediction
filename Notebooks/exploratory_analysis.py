@@ -85,20 +85,14 @@ heatmap.set_title('Correlation of features with Sales Price', fontdict={'fontsiz
 
 # Let's explore more this correlation between numerical features
 
-# In[9]:
+# In[43]:
 
 
-mask = np.triu(correlations_train)
+thresh = 0.6
+filtered_correlations_train = correlations_train[((correlations_train >= thresh) | (correlations_train <= -thresh)) & (correlations_train !=1.000)]
+mask = np.triu(filtered_correlations_train)
 plt.figure(figsize=(20, 20))
-sns.heatmap(correlations_train,
-            annot=True,
-            fmt='.1f',
-            cmap='magma',
-            square=True,
-            mask=mask,
-            linewidths=1,
-            cbar=False)
-
+sns.heatmap(filtered_correlations_train, annot=True, cmap="magma",cbar=False,mask = mask,square=True,fmt='.1f',linewidths=1)
 plt.show()
 
 
@@ -106,7 +100,7 @@ plt.show()
 
 # Let's look now at the importance of categorical variables for the estimating price
 
-# In[10]:
+# In[44]:
 
 
 from matplotlib.ticker import MaxNLocator
@@ -130,12 +124,12 @@ def boxplots_cat(y, df):
                     order=sortd.index,
                     ax=j)
         j.tick_params(labelrotation=45)
-        j.yaxis.set_major_locator(MaxNLocator(nbins=18))
+        j.yaxis.set_major_locator(MaxNLocator(nbins=9))
 
         plt.tight_layout()
 
 
-# In[11]:
+# In[45]:
 
 
 boxplots_cat('SalePrice', train)
